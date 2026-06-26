@@ -5,6 +5,11 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+  1. check today's task
+  2. add/delete a pet
+  3. walk pets
+  4. feed pets
+
 - What classes did you include, and what responsibilities did you assign to each?
 
 **b. Design changes**
