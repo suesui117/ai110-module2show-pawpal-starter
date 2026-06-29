@@ -12,6 +12,8 @@
 
 - What classes did you include, and what responsibilities did you assign to each?
 
+I included five classes, organized around a single responsibility each (Owner → Pet → Task data hierarchy, plus a Scheduler that processes tasks and a Plan that holds the result):
+
 - **Owner** — holds owner identity (name) and a list of pets; methods to add/remove pets.
 - **Pet** — holds identifying info (name, species, breed, age), a back-reference to its owner, and its own list of tasks; methods to add/remove/list tasks.
 - **Task** — represents one care activity: title, due time, duration, priority, completion status, and the pet it belongs to; `mark_complete()` and `priority_rank()` (maps priority to a sortable number).
@@ -22,6 +24,13 @@
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+Yes. After AI reviewed my class skeleton, I made two changes:
+
+1. **Centralized the two-way links.** Owner↔Pet and Pet↔Task are bidirectional. I moved all the linking into `add_pet`/`add_task` so both sides are always set together (e.g. `add_task` sets `task.pet` *and* appends to `pet.tasks`). This prevents the two references from drifting out of sync.
+2. **Switched the data classes to `@dataclass(eq=False)`.** By default a dataclass compares by field values, so two different tasks with identical fields would count as "equal" — meaning `list.remove()` could delete the wrong one. Using `eq=False` restores identity-based comparison, and I also made `remove_task`/`remove_pet` remove by identity (`is`) to be safe.
+
+I verified both changes with a quick smoke test (add a pet/task, confirm both links resolve, mark complete, remove by identity).
 
 ---
 
