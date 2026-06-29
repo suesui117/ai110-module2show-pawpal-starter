@@ -6,11 +6,17 @@
 
 - Briefly describe your initial UML design.
 
-1. View today's tasks. The user can view all pet care tasks scheduled for the current day.
-2. Manage pets (CRUD). The user can create, view, edit, and delete pets. Each pet stores basic information such as name, species, breed, and age.
-3. Manage tasks (CRUD). The user can create, edit, and delete care tasks (such as feeding, walking, medication, and grooming) and assign them to a specific pet.
+1. Manage pets (CRUD). The user can create, view, edit, and delete pets. Each pet stores basic information such as name, species, breed, and age.
+2. Manage care tasks (CRUD). The user can create, edit, and delete care tasks (such as feeding, walking, medication, and grooming) and assign each to a specific pet, with a duration and priority.
+3. Generate a daily plan. Given the day's tasks and a time budget, the system selects and orders tasks by priority and constraints, and explains its choices (why each task was scheduled or skipped) as part of the output.
 
 - What classes did you include, and what responsibilities did you assign to each?
+
+- **Owner** — holds owner identity (name) and a list of pets; methods to add/remove pets.
+- **Pet** — holds identifying info (name, species, breed, age), a back-reference to its owner, and its own list of tasks; methods to add/remove/list tasks.
+- **Task** — represents one care activity: title, due time, duration, priority, completion status, and the pet it belongs to; `mark_complete()` and `priority_rank()` (maps priority to a sortable number).
+- **Scheduler** — the "brain." Takes the owner's pets and a time budget, gathers tasks across all pets (`all_tasks()`), and applies algorithmic features (`sort_by_priority()`, `filter_pending()`) to build a daily plan.
+- **Plan** — the scheduler's result: the scheduled tasks, the skipped tasks, total minutes used, and an `explain()` method describing why each task was scheduled or skipped.
 
 **b. Design changes**
 
