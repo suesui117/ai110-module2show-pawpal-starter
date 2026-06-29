@@ -106,10 +106,12 @@ I'm most satisfied with the `Scheduler` "brain" working cleanly across multiple 
 
 - If you had another iteration, what would you improve or redesign?
 
+I'd cache the sessions, so when I open it again it remembers previously saved info.
+
 I'd upgrade conflict detection to handle **overlapping durations**, not just exact start times, and give recurring tasks an **end condition** so they don't repeat forever. On the UI side, I'd add a way to mark tasks complete directly in Streamlit (which would make the recurrence feature visible in the browser) and persist data beyond a single session.
 
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
 
-The biggest thing I learned is that my job as the human is **design judgment**, not typing speed. AI could generate classes, tests, and refactors quickly, but it was my decisions — keeping the model simple, rejecting an unnecessary "Explain" action and extra inheritance, choosing exact-match conflict detection on purpose — that kept the system coherent. Cross-checking AI output against the rubric and running the code to verify it mattered far more than accepting suggestions as-is.
+The biggest thing I learned is that my job as the human is **design judgment**, not typing speed. AI could generate classes, tests, and refactors quickly, but it was my decisions — keeping the model simple, rejecting an unnecessary "Explain" action and extra inheritance, choosing exact-match conflict detection on purpose — that kept the system coherent. Initially, AI helped designed a more complicated and nested uml, I had to double check and ask it to tweak it. Cross-checking AI output against the rubric and running the code to verify it mattered far more than accepting suggestions as-is.
