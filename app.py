@@ -1,6 +1,10 @@
+import os
+
 import streamlit as st
 
 from pawpal_system import Owner, Pet, Task, Scheduler
+
+DATA_FILE = "data.json"
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -8,16 +12,28 @@ st.title("🐾 PawPal+")
 st.caption("Plan daily pet care tasks across all your pets.")
 
 # --- Application memory -----------------------------------------------------
-# Streamlit re-runs this script on every interaction, so we keep the Owner
-# (and all its pets/tasks) in st.session_state so the data persists.
+# Streamlit re-runs this script on every interaction, so we keep the Owner in
+# st.session_state. On first load we restore from data.json if it exists, so
+# pets and tasks persist between separate runs of the app.
 if "owner" not in st.session_state:
-    st.session_state.owner = Owner("Jordan")
+    if os.path.exists(DATA_FILE):
+        st.session_state.owner = Owner.load_from_json(DATA_FILE)
+    else:
+        st.session_state.owner = Owner("Jordan")
 
 owner = st.session_state.owner
 
+
+def save() -> None:
+    """Persist the current owner (pets + tasks) to disk."""
+    owner.save_to_json(DATA_FILE)
+
 # --- Owner -----------------------------------------------------------------
 st.subheader("Owner")
-owner.name = st.text_input("Owner name", value=owner.name)
+new_name = st.text_input("Owner name", value=owner.name)
+if new_name != owner.name:
+    owner.name = new_name
+    save()
 
 st.divider()
 
@@ -32,6 +48,7 @@ with st.form("add_pet", clear_on_submit=True):
         owner.add_pet(
             Pet(pet_name.strip(), species, breed=breed or None, age=age or None)
         )
+        save()
         st.success(f"Added {pet_name.strip()}!")
 
 if not owner.pets:
@@ -55,6 +72,7 @@ if owner.pets:
             pet.add_task(
                 Task(title.strip(), due_time, int(duration), priority, frequency=frequency)
             )
+            save()
             st.success(f"Added '{title.strip()}' for {chosen}!")
 
     # --- Current pets & tasks ----------------------------------------------

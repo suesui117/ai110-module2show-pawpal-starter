@@ -13,6 +13,13 @@ and produces an explained daily plan that fits a time budget.
 - **Conflict warnings** (`Scheduler.detect_conflicts()`) — flags tasks booked at the same time.
 - **Daily recurrence** (`Task.mark_complete()` → `Task.next_occurrence()`) — completing a `daily`/`weekly` task auto-schedules the next one.
 - **Explained daily plan** (`Scheduler.build_plan()` → `Plan.explain()`) — greedy priority-fit within a time budget, with reasons for what was scheduled or skipped.
+- **Data persistence** (`Owner.save_to_json()` / `Owner.load_from_json()`) — pets and tasks are saved to `data.json` and restored on the next run.
+
+## 🗺️ System Diagram
+
+The full class design (source: [`diagrams/uml_final.mmd`](diagrams/uml_final.mmd)):
+
+![PawPal+ class diagram](diagrams/uml_final.png)
 
 ## Scenario
 
@@ -125,6 +132,30 @@ PawPal+ adds several algorithmic features on top of basic CRUD, all living in th
 | Conflict handling | `Scheduler.detect_conflicts()` | Flags tasks sharing the exact same `due_time`; returns warning strings instead of raising |
 | Recurring tasks | `Task.mark_complete()`, `Task.next_occurrence()` | Completing a `daily`/`weekly` task auto-spawns the next occurrence using `timedelta` |
 | Daily plan | `Scheduler.build_plan()` → `Plan.explain()` | Greedy priority-fit within a time budget, with a human-readable explanation |
+
+## 🗂️ Data Persistence
+
+PawPal+ remembers your pets and tasks between runs by saving them to a JSON file.
+
+**How it works:**
+
+- **Serialization** — each class has a `to_dict()` / `from_dict()` pair. `Task.to_dict()`
+  stores its date as an ISO string (and omits the `pet` back-reference to avoid a
+  circular loop); `from_dict()` parses the string back into a `datetime.date`.
+- **Saving** — `Owner.save_to_json("data.json")` walks Owner → Pets → Tasks and writes
+  the whole tree to `data.json` with `json.dump`.
+- **Loading** — `Owner.load_from_json("data.json")` reads the file and rebuilds the
+  objects. Because `from_dict` adds pets/tasks through `add_pet`/`add_task`, the
+  bidirectional links (`pet.owner`, `task.pet`) are re-established automatically.
+- **In the UI** — `app.py` loads `data.json` on startup (if it exists) and calls
+  `save()` after each add, so data survives a full restart of the app.
+
+**Files modified for this feature:** `pawpal_system.py` (serialization + save/load
+methods), `app.py` (load on startup, save on changes), `tests/test_pawpal.py`
+(round-trip test), and `.gitignore` (ignores the generated `data.json`).
+
+> Note: `data.json` is user data generated at runtime, so it is git-ignored rather
+> than committed.
 
 ## 📸 Demo Walkthrough
 

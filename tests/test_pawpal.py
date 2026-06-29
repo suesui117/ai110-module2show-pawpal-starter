@@ -140,3 +140,29 @@ def test_task_larger_than_budget_is_skipped():
 
     assert plan.scheduled == []
     assert [t.title for t in plan.skipped] == ["Marathon walk"]
+
+
+def test_json_round_trip_persists_pets_and_tasks(tmp_path):
+    """save_to_json then load_from_json restores owner, pets, tasks, and links."""
+    import datetime
+
+    owner = Owner("Sue")
+    pet = Pet("Mochi", species="cat", breed="Tabby", age=3)
+    owner.add_pet(pet)
+    pet.add_task(
+        Task("Feed", due_time="08:00", duration_minutes=10, priority="high",
+             frequency="daily", due_date=datetime.date(2026, 1, 1))
+    )
+
+    path = tmp_path / "data.json"
+    owner.save_to_json(str(path))
+    loaded = Owner.load_from_json(str(path))
+
+    assert loaded.name == "Sue"
+    assert loaded.pets[0].name == "Mochi"
+    task = loaded.pets[0].tasks[0]
+    assert task.title == "Feed"
+    assert task.due_date == datetime.date(2026, 1, 1)  # date restored, not a string
+    # Bidirectional links are rebuilt on load.
+    assert loaded.pets[0].owner is loaded
+    assert task.pet is loaded.pets[0]

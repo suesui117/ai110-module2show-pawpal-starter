@@ -106,9 +106,9 @@ I'm most satisfied with the `Scheduler` "brain" working cleanly across multiple 
 
 - If you had another iteration, what would you improve or redesign?
 
-I'd cache the sessions, so when I open it again it remembers previously saved info.
+I originally wanted the app to remember my data between sessions, and I built that as an optional extension: PawPal+ now saves pets and tasks to a `data.json` file (`Owner.save_to_json` / `load_from_json`, backed by `to_dict` / `from_dict` on each class) and reloads it on startup, so the data persists between separate runs. The trickiest part was JSON serialization of nested objects — I converted the `due_date` to an ISO string and rebuilt the two-way `owner`/`pet` links on load instead of trying to serialize them directly.
 
-I'd upgrade conflict detection to handle **overlapping durations**, not just exact start times, and give recurring tasks an **end condition** so they don't repeat forever. On the UI side, I'd add a way to mark tasks complete directly in Streamlit (which would make the recurrence feature visible in the browser) and persist data beyond a single session.
+Other things I'd still improve: upgrade conflict detection to handle **overlapping durations**, not just exact start times; give recurring tasks an **end condition** so they don't repeat forever; and add a way to mark tasks complete directly in the Streamlit UI (which would make the recurrence feature visible in the browser).
 
 **c. Key takeaway**
 

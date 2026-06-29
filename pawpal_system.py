@@ -7,6 +7,7 @@ objects use dataclasses to stay clean.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
@@ -48,6 +49,32 @@ class Task:
         ranks = {"high": 3, "medium": 2, "low": 1}
         return ranks.get(self.priority.lower(), 0)
 
+    def to_dict(self) -> dict:
+        """Serialize this task to a plain dict (the pet link is omitted)."""
+        return {
+            "title": self.title,
+            "due_time": self.due_time,
+            "duration_minutes": self.duration_minutes,
+            "priority": self.priority,
+            "completed": self.completed,
+            "frequency": self.frequency,
+            "due_date": self.due_date.isoformat() if self.due_date else None,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Task":
+        """Rebuild a Task from a dict produced by to_dict()."""
+        due_date = data.get("due_date")
+        return cls(
+            title=data["title"],
+            due_time=data["due_time"],
+            duration_minutes=data["duration_minutes"],
+            priority=data["priority"],
+            completed=data.get("completed", False),
+            frequency=data.get("frequency", "none"),
+            due_date=date.fromisoformat(due_date) if due_date else None,
+        )
+
 
 @dataclass(eq=False)
 class Pet:
@@ -73,6 +100,29 @@ class Pet:
         """Return this pet's tasks."""
         return self.tasks
 
+    def to_dict(self) -> dict:
+        """Serialize this pet and its tasks to a plain dict (owner link omitted)."""
+        return {
+            "name": self.name,
+            "species": self.species,
+            "breed": self.breed,
+            "age": self.age,
+            "tasks": [task.to_dict() for task in self.tasks],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Pet":
+        """Rebuild a Pet (and its tasks) from a dict produced by to_dict()."""
+        pet = cls(
+            name=data["name"],
+            species=data["species"],
+            breed=data.get("breed"),
+            age=data.get("age"),
+        )
+        for task_data in data.get("tasks", []):
+            pet.add_task(Task.from_dict(task_data))  # add_task relinks task.pet
+        return pet
+
 
 @dataclass(eq=False)
 class Owner:
@@ -93,6 +143,29 @@ class Owner:
     def all_tasks(self) -> list[Task]:
         """Provide access to every task across all of this owner's pets."""
         return [task for pet in self.pets for task in pet.tasks]
+
+    def to_dict(self) -> dict:
+        """Serialize this owner and all pets/tasks to a plain dict."""
+        return {"name": self.name, "pets": [pet.to_dict() for pet in self.pets]}
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Owner":
+        """Rebuild an Owner (with pets and tasks) from a dict."""
+        owner = cls(name=data["name"])
+        for pet_data in data.get("pets", []):
+            owner.add_pet(Pet.from_dict(pet_data))  # add_pet relinks pet.owner
+        return owner
+
+    def save_to_json(self, path: str = "data.json") -> None:
+        """Write this owner's full state (pets + tasks) to a JSON file."""
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self.to_dict(), f, indent=2)
+
+    @classmethod
+    def load_from_json(cls, path: str = "data.json") -> "Owner":
+        """Load an Owner from a JSON file written by save_to_json()."""
+        with open(path, "r", encoding="utf-8") as f:
+            return cls.from_dict(json.load(f))
 
 
 @dataclass
