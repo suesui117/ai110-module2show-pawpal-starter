@@ -1,0 +1,29 @@
+Project 2: PawPal+
+Total Points: 20pts + 10pts bonus
+
+Required Features
+4pts	UML Diagram Represents a Clear, Coherent OOP Design
+1	UML includes at least the four required classes -- Owner, Pet, Task, Scheduler -- and is submitted as a Mermaid source file (.mmd or .md containing Mermaid syntax), not only a screenshot or PNG.
+1	Each class lists relevant attributes and methods.
+1	UML shows appropriate relationships (e.g., Owner → Pet(s), Pet → Task(s)).
+1	UML is readable and matches the student's final implementation (allowing for minor naming differences).
+4pts	Implementation of Core Classes Matches the Design
+1	Task class includes at least: description, due time or date, completion status, and one relevant method (e.g., mark_complete).
+1	Pet class includes identifying info and a collection of tasks with methods to add/list/manage them.
+1	Owner class includes identifying info and a list of pets with appropriate methods.
+1	Scheduler class retrieves, organizes, or manages tasks across multiple pets (not just one pet's tasks, and not merely holding data).
+3pts	Scheduler Includes At Least Two Meaningful Algorithmic Features
+1	At least two algorithmic features are implemented (e.g., sorting tasks by due time/priority, filtering tasks, detecting scheduling conflicts, handling recurring tasks).
+1	Features are correct and reproducible.
+1	Features operate across multiple pets (not just one).
+3pts	Demo Script Illustrates End-to-End Functionality
+1	main.py creates at least one Owner, two Pets, and several Tasks (3+).
+1	Scheduler is used to perform at least one algorithmic function (sort/filter/etc.).
+1	Output is readable and clearly demonstrates the system workflow, and a sample of this CLI output is pasted in the README as a fenced code block.
+3pts	Basic Pytest Suite Verifies System Behavior
+1	Test file exists (e.g., tests/test_pawpal.py) and the suite has at least one passing test.
+2	At least two meaningful, passing tests are included (e.g., task completion, sorting correctness, filtering behavior).
+3pts	Documentation and AI Reflection
+1	README describes the system, its classes, and the algorithmic features.
+1	README includes clear instructions for running the demo and tests, plus the pytest command, a summary of test coverage, and a sample of passing test output as a code block.
+1	Reflection explains how AI influenced design decisions, what suggestions were accepted/rejected, and how correctness was verified.
