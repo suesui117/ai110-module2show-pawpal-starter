@@ -28,7 +28,10 @@ classDiagram
         +str priority
         +bool completed
         +Pet pet
+        +str frequency
+        +date due_date
         +mark_complete() None
+        +next_occurrence() Task
         +priority_rank() int
     }
 
@@ -37,7 +40,11 @@ classDiagram
         +int time_budget_minutes
         +all_tasks() list~Task~
         +sort_by_priority() list~Task~
+        +sort_by_time() list~Task~
         +filter_pending() list~Task~
+        +filter_by_status(completed) list~Task~
+        +filter_by_pet(pet_name) list~Task~
+        +detect_conflicts() list~str~
         +build_plan() Plan
     }
 

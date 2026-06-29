@@ -85,14 +85,16 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+PawPal+ adds several algorithmic features on top of basic CRUD, all living in the
+`Scheduler` (and `Task`) classes and working **across multiple pets**:
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.sort_by_priority()`, `Scheduler.sort_by_time()` | Priority sort breaks ties by due time; time sort orders by `"HH:MM"` |
+| Filtering | `Scheduler.filter_pending()`, `Scheduler.filter_by_status()`, `Scheduler.filter_by_pet()` | Filter by completion status or by pet name |
+| Conflict handling | `Scheduler.detect_conflicts()` | Flags tasks sharing the exact same `due_time`; returns warning strings instead of raising |
+| Recurring tasks | `Task.mark_complete()`, `Task.next_occurrence()` | Completing a `daily`/`weekly` task auto-spawns the next occurrence using `timedelta` |
+| Daily plan | `Scheduler.build_plan()` → `Plan.explain()` | Greedy priority-fit within a time budget, with a human-readable explanation |
 
 ## 📸 Demo Walkthrough
 

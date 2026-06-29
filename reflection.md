@@ -46,6 +46,8 @@ I verified both changes with a quick smoke test (add a pet/task, confirm both li
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
+One tradeoff is in `detect_conflicts()`: it only flags tasks that share the **exact same `due_time`**, not tasks whose **durations overlap** (e.g. an 08:00 task lasting 45 min running into an 08:30 task). I chose exact-match because it keeps the logic simple and predictable — it compares time strings directly, returns plain warning messages instead of raising, and is easy to test. True overlap detection would require parsing every `due_time` into minutes, adding `duration_minutes`, and comparing intervals pairwise, which is more code and more edge cases than this assignment needs. For a pet owner glancing at a daily plan, "two things booked at 08:00" is the most common and most useful conflict to catch, so the simpler version covers the realistic case while staying readable.
+
 ---
 
 ## 3. AI Collaboration

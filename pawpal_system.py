@@ -1,13 +1,14 @@
 """PawPal+ logic layer.
 
-Class skeletons generated from diagrams/uml.mmd. Data-holding objects use
-dataclasses to stay clean. Behavior methods are empty stubs to implement
-incrementally.
+Core classes (from diagrams/uml.mmd) plus the "smarter scheduling" algorithms:
+sorting, filtering, recurring tasks, and conflict detection. Data-holding
+objects use dataclasses to stay clean.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 
 
 @dataclass(eq=False)
@@ -20,10 +21,27 @@ class Task:
     priority: str                 # "low" | "medium" | "high"
     completed: bool = False
     pet: "Pet | None" = None
+    frequency: str = "none"       # "none" | "daily" | "weekly"
+    due_date: date | None = None  # used to advance recurring tasks
 
     def mark_complete(self) -> None:
-        """Mark this task as done."""
+        """Mark this task done; if recurring, spawn the next occurrence."""
         self.completed = True
+        if self.frequency in ("daily", "weekly") and self.pet is not None:
+            self.pet.add_task(self.next_occurrence())
+
+    def next_occurrence(self) -> "Task":
+        """Return a fresh, uncompleted copy of this task on its next date."""
+        step = timedelta(days=1) if self.frequency == "daily" else timedelta(weeks=1)
+        base = self.due_date or date.today()
+        return Task(
+            title=self.title,
+            due_time=self.due_time,
+            duration_minutes=self.duration_minutes,
+            priority=self.priority,
+            frequency=self.frequency,
+            due_date=base + step,
+        )
 
     def priority_rank(self) -> int:
         """Return a sortable number for this task's priority (higher = more urgent)."""
@@ -146,9 +164,44 @@ class Scheduler:
             key=lambda t: (-t.priority_rank(), t.due_time),
         )
 
+    def sort_by_time(self) -> list[Task]:
+        """Return tasks across all pets sorted by due_time ("HH:MM")."""
+        return sorted(self.all_tasks(), key=lambda t: t.due_time)
+
     def filter_pending(self) -> list[Task]:
         """Algorithmic feature #2: only tasks that are not yet completed."""
         return [task for task in self.all_tasks() if not task.completed]
+
+    def filter_by_status(self, completed: bool) -> list[Task]:
+        """Return tasks matching the given completion status."""
+        return [task for task in self.all_tasks() if task.completed == completed]
+
+    def filter_by_pet(self, pet_name: str) -> list[Task]:
+        """Return tasks belonging to the pet with the given name."""
+        return [
+            task
+            for task in self.all_tasks()
+            if task.pet is not None and task.pet.name == pet_name
+        ]
+
+    def detect_conflicts(self) -> list[str]:
+        """Return warning strings for tasks that share the same due_time.
+
+        Lightweight strategy: flags exact time matches only (not overlapping
+        durations) and returns warnings instead of raising.
+        """
+        by_time: dict[str, list[Task]] = {}
+        for task in self.all_tasks():
+            by_time.setdefault(task.due_time, []).append(task)
+
+        warnings = []
+        for due_time, tasks in sorted(by_time.items()):
+            if len(tasks) > 1:
+                labels = ", ".join(
+                    f"{t.title} ({t.pet.name if t.pet else '?'})" for t in tasks
+                )
+                warnings.append(f"⚠️ Conflict at {due_time}: {labels}")
+        return warnings
 
     def build_plan(self) -> Plan:
         """Select and order tasks within the time budget; return a Plan.
