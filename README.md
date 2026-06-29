@@ -69,19 +69,37 @@ lower-priority tasks when time runs out.
 
 ## 🧪 Testing PawPal+
 
-```bash
-# Run the full test suite:
-pytest
+Run the full test suite from the project root:
 
-# Run with coverage:
-pytest --cov
+```bash
+python -m pytest
 ```
+
+**What the tests cover** (`tests/test_pawpal.py`, 11 tests):
+
+- **Core behavior** — `mark_complete()` flips status; `add_task` grows a pet's task list
+- **Sorting correctness** — `sort_by_priority()` and `sort_by_time()` order tasks across multiple pets
+- **Recurrence logic** — completing a `daily` task spawns the next occurrence; a `weekly` task advances 7 days
+- **Conflict detection** — same-time tasks are flagged; differing times produce no false positives
+- **Scheduling/edge cases** — `build_plan()` respects the time budget, an empty scheduler returns an empty plan, and a task larger than the whole budget is skipped (not deadlocked)
 
 Sample test output:
 
 ```
-# Paste your pytest output here
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0
+collected 11 items
+
+tests/test_pawpal.py ...........                                         [100%]
+
+============================== 11 passed in 0.04s ==============================
 ```
+
+**Confidence level: ★★★★☆ (4/5)** — all happy paths and the main edge cases
+(empty schedules, oversized tasks, exact-time conflicts, recurrence) are covered
+and passing. The remaining star is held back because conflict detection only
+catches exact `due_time` matches, not overlapping durations, and recurrence has
+no end date — both are documented tradeoffs rather than bugs.
 
 ## 📐 Smarter Scheduling
 

@@ -90,3 +90,53 @@ def test_build_plan_respects_time_budget():
     assert [t.title for t in plan.scheduled] == ["Walk"]
     assert [t.title for t in plan.skipped] == ["Hike"]
     assert plan.total_minutes == 45
+
+
+# --- Edge cases ------------------------------------------------------------
+
+def test_empty_scheduler_returns_empty_plan():
+    """A pet with no tasks produces an empty plan without crashing."""
+    owner = Owner("Sue")
+    owner.add_pet(Pet("Mochi", species="cat"))  # no tasks
+
+    plan = Scheduler(owner.pets, time_budget_minutes=60).build_plan()
+
+    assert plan.scheduled == []
+    assert plan.skipped == []
+    assert plan.total_minutes == 0
+
+
+def test_no_conflict_when_times_differ():
+    """detect_conflicts returns nothing when no two tasks share a time."""
+    pet = Pet("Mochi", species="cat")
+    pet.add_task(Task("Feed", due_time="08:00", duration_minutes=10, priority="high"))
+    pet.add_task(Task("Brush", due_time="19:00", duration_minutes=10, priority="low"))
+
+    scheduler = Scheduler([pet], time_budget_minutes=60)
+    assert scheduler.detect_conflicts() == []
+
+
+def test_weekly_recurrence_advances_seven_days():
+    """Completing a weekly task schedules the next one 7 days out."""
+    import datetime
+
+    pet = Pet("Biscuit", species="dog")
+    pet.add_task(
+        Task("Bath", due_time="10:00", duration_minutes=30, priority="medium",
+             frequency="weekly", due_date=datetime.date(2026, 1, 1))
+    )
+
+    pet.tasks[0].mark_complete()
+
+    assert pet.tasks[1].due_date == datetime.date(2026, 1, 8)
+
+
+def test_task_larger_than_budget_is_skipped():
+    """A single task longer than the whole budget is skipped, not scheduled."""
+    pet = Pet("Biscuit", species="dog")
+    pet.add_task(Task("Marathon walk", due_time="08:00", duration_minutes=200, priority="high"))
+
+    plan = Scheduler([pet], time_budget_minutes=60).build_plan()
+
+    assert plan.scheduled == []
+    assert [t.title for t in plan.skipped] == ["Marathon walk"]
