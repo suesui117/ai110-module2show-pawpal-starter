@@ -114,6 +114,7 @@ class Plan:
 
     @staticmethod
     def _row(task: Task, status: str) -> dict:
+        """Build one display row dict for a task with the given status."""
         return {
             "pet": task.pet.name if task.pet else "?",
             "task": task.title,
