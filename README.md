@@ -44,15 +44,28 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
+Running the demo script shows how PawPal+ builds a daily plan across multiple pets:
+
+```bash
+python main.py
+```
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+PawPal+ — Today's Schedule for Sue
+Pets: Mochi, Biscuit
+Total tasks across all pets: 5
+--------------------------------------------------
+Daily plan (60 min scheduled):
+  1. 08:00 — Morning feeding for Mochi (10 min, high) [scheduled]
+  2. 08:30 — Morning walk for Biscuit (45 min, high) [scheduled]
+  3. 09:00 — Medication for Biscuit (5 min, medium) [scheduled]
+  -  Long hike for Biscuit (90 min, low) [skipped: not enough time in budget]
+  -  Evening brushing for Mochi (15 min, low) [skipped: not enough time in budget]
 ```
+
+The Scheduler gathers tasks from every pet, sorts them by priority (ties broken
+by due time), and greedily fits them into the daily time budget — skipping
+lower-priority tasks when time runs out.
 
 ## 🧪 Testing PawPal+
 
