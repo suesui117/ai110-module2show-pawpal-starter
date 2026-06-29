@@ -1,6 +1,18 @@
 # PawPal+ (Module 2 Project)
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+**PawPal+** is a Streamlit app that helps a pet owner plan daily care tasks across
+all of their pets. Tasks live on each pet; a `Scheduler` gathers them across pets
+and produces an explained daily plan that fits a time budget.
+
+## ✨ Features
+
+- **Multi-pet management** — one owner, many pets, each with its own care tasks (CRUD).
+- **Sorting by priority** (`Scheduler.sort_by_priority()`) — highest-priority tasks first, ties broken by due time.
+- **Sorting by time** (`Scheduler.sort_by_time()`) — chronological view of every task across pets.
+- **Filtering** (`filter_pending()`, `filter_by_status()`, `filter_by_pet()`) — by completion status or pet.
+- **Conflict warnings** (`Scheduler.detect_conflicts()`) — flags tasks booked at the same time.
+- **Daily recurrence** (`Task.mark_complete()` → `Task.next_occurrence()`) — completing a `daily`/`weekly` task auto-schedules the next one.
+- **Explained daily plan** (`Scheduler.build_plan()` → `Plan.explain()`) — greedy priority-fit within a time budget, with reasons for what was scheduled or skipped.
 
 ## Scenario
 
@@ -116,12 +128,67 @@ PawPal+ adds several algorithmic features on top of basic CRUD, all living in th
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+### Main UI features (Streamlit, `app.py`)
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+- **Owner & pets** — set the owner name and add pets (name, species, breed, age).
+- **Add tasks** — for any pet, enter a title, due time, duration, priority, and a
+  *Repeats* option (`none` / `daily` / `weekly`).
+- **Current pets & tasks** — each pet shows its task list in a table.
+- **Build today's schedule** — pick a time budget and generate the plan. The app
+  shows conflict warnings, the budgeted plan, a time-sorted view of all tasks, and
+  an expandable "Why this plan?" explanation.
+
+### Example workflow
+
+1. Set the owner name (e.g. *Sue*).
+2. Add a pet → **Mochi** (cat). Add a second pet → **Biscuit** (dog).
+3. Add tasks: *Morning feeding* 08:00 for Mochi (daily), *Morning walk* 08:00 for
+   Biscuit, *Medication* 09:00 for Biscuit, plus a couple of low-priority evening tasks.
+4. Set the time budget to **60 minutes** and click **Generate schedule**.
+5. View today's schedule — note the conflict warning, the priority-fit plan, and the
+   time-sorted task list.
+
+### Key Scheduler behaviors shown
+
+- **Sorting** — tasks added out of order appear chronologically (`sort_by_time`) and
+  by priority in the plan (`sort_by_priority`).
+- **Conflict warnings** — two 08:00 tasks trigger a ⚠️ warning (`detect_conflicts`).
+- **Budgeting** — the plan fits high-priority tasks first and skips what doesn't fit.
+- **Recurrence** — completing the daily feeding schedules tomorrow's copy.
+
+### Sample CLI output (`python main.py`)
+
+```
+PawPal+ — Today's Schedule for Sue
+Pets: Mochi, Biscuit
+=======================================================
+
+[Sorted by time]
+  08:00  Morning feeding (Mochi)
+  08:00  Morning walk (Biscuit)
+  09:00  Medication (Biscuit)
+  17:00  Long hike (Biscuit)
+  19:00  Evening brushing (Mochi)
+
+[Filter by pet: Biscuit]
+  17:00  Long hike
+  08:00  Morning walk
+  09:00  Medication
+
+[Conflict detection]
+  ⚠️ Conflict at 08:00: Morning feeding (Mochi), Morning walk (Biscuit)
+
+[Recurring tasks]
+  Completed 'Morning feeding' (daily) -> task count 5 to 6
+  Next occurrence scheduled for: 2026-06-30
+
+[Today's plan]
+Daily plan (60 min scheduled):
+  1. 08:00 — Morning feeding for Mochi (10 min, high) [scheduled]
+  2. 08:00 — Morning walk for Biscuit (45 min, high) [scheduled]
+  3. 09:00 — Medication for Biscuit (5 min, medium) [scheduled]
+  -  Long hike for Biscuit (90 min, low) [skipped: not enough time in budget]
+  -  Evening brushing for Mochi (15 min, low) [skipped: not enough time in budget]
+```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->

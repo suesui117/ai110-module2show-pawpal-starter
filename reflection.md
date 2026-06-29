@@ -41,6 +41,8 @@ I verified both changes with a quick smoke test (add a pet/task, confirm both li
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+My scheduler considers three constraints: a daily **time budget** (total minutes available), each task's **priority** (high/medium/low), and **completion status** (completed tasks are filtered out before planning). I decided time and priority mattered most because the scenario is a *busy* owner who can't do everything — so the real question is "what should I do first when I run out of time?" `build_plan()` answers that by sorting pending tasks highest-priority first (ties broken by due time) and greedily fitting them into the budget, skipping what doesn't fit. Owner preferences are a possible future constraint, but I left them out to keep the core logic focused on the two constraints that drive the daily decision.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
@@ -57,10 +59,20 @@ One tradeoff is in `detect_conflicts()`: it only flags tasks that share the **ex
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
 - What kinds of prompts or questions were most helpful?
 
+I used my AI coding assistant across every phase: brainstorming the core actions and class list, converting the UML into dataclass skeletons, implementing the scheduler logic, writing tests, and debugging. The most effective features were **agent/edit mode** (making coordinated edits across `pawpal_system.py`, `main.py`, tests, and the README at once) and **chat for conceptual questions**. The most helpful prompts were the focused, checkable ones — for example asking it to **cross-check my UML against the grading rubric line by line**, which caught that my `Task` class was missing `due_time`, `completed`, and `mark_complete()`. Concept questions like "is Pet-has-Task the right relationship?" and "how should the Scheduler get tasks from the Owner's pets?" were also useful because the answers shaped the design, not just the code.
+
+**AI strategy notes:**
+
+- **Most effective features:** rubric-aware code review, multi-file editing in agent mode, and quick CLI smoke tests to verify behavior before moving on.
+- **Separate chat sessions per phase** kept design discussion from bleeding into testing details — when I started a fresh session for testing, the assistant focused only on edge cases (empty schedule, oversized task, same-time conflicts) instead of re-litigating design.
+- **Being the "lead architect":** I treated AI suggestions as proposals to evaluate, not answers to paste. I kept the system simple on purpose (e.g. declining extra inheritance and exact-match conflict detection) and made the final calls on structure.
+
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
+
+Early on, the assistant proposed making **"Explain the plan" a third standalone core action**. I pushed back — an explanation isn't something a user triggers on its own, it's an *output* of generating the plan. So instead of a separate action, I folded the reasoning into `Plan.explain()`. I also questioned an inheritance idea (Pet/Task) and kept it as a simple `has-a` relationship. I verified AI suggestions in three ways: checking them against the **grading rubric**, running the **CLI demo** (`python main.py`) to see real behavior, and running the **pytest suite** (11 tests) to confirm sorting, recurrence, conflicts, and budgeting all behaved correctly. One concrete catch from the demo: a recurring-task test in `main.py` threw an `IndexError` because my selector grabbed the wrong task — running it surfaced the bug immediately, and the fix was in my demo code, not the scheduler logic.
 
 ---
 
@@ -71,10 +83,14 @@ One tradeoff is in `detect_conflicts()`: it only flags tasks that share the **ex
 - What behaviors did you test?
 - Why were these tests important?
 
+I wrote 11 pytest tests covering: task completion (`mark_complete` flips status), task addition (a pet's task count grows), sorting correctness (`sort_by_priority` and `sort_by_time` across multiple pets), recurrence (completing a daily task spawns the next day's copy; weekly advances 7 days), conflict detection (same-time tasks flagged; differing times produce no false positives), and scheduling edge cases (budget respected, empty scheduler returns an empty plan, a task larger than the whole budget is skipped). These were important because sorting, recurrence, and conflict detection are the "smart" parts of the app — the places where a bug would silently produce a wrong plan rather than crash.
+
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
+
+I'm about **4 out of 5** confident. All happy paths and the main edge cases pass, and the logic is small enough to reason about. The reason it isn't 5/5 is that two known limitations are untested-by-design: conflict detection only catches **exact** time matches (not overlapping durations), and recurring tasks have **no end date**. With more time I'd test overlapping-duration conflicts, malformed `due_time` strings (e.g. `"9:00"` vs `"09:00"`), and a recurrence that should stop after a number of occurrences.
 
 ---
 
@@ -84,10 +100,16 @@ One tradeoff is in `detect_conflicts()`: it only flags tasks that share the **ex
 
 - What part of this project are you most satisfied with?
 
+I'm most satisfied with the `Scheduler` "brain" working cleanly across multiple pets. It gathers every pet's tasks, sorts them by priority, fits them into a time budget, and — through `Plan.explain()` — tells the owner *why* each task was scheduled or skipped. The clear Owner → Pet → Task hierarchy made that logic simple to write and test.
+
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
 
+I'd upgrade conflict detection to handle **overlapping durations**, not just exact start times, and give recurring tasks an **end condition** so they don't repeat forever. On the UI side, I'd add a way to mark tasks complete directly in Streamlit (which would make the recurrence feature visible in the browser) and persist data beyond a single session.
+
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+
+The biggest thing I learned is that my job as the human is **design judgment**, not typing speed. AI could generate classes, tests, and refactors quickly, but it was my decisions — keeping the model simple, rejecting an unnecessary "Explain" action and extra inheritance, choosing exact-match conflict detection on purpose — that kept the system coherent. Cross-checking AI output against the rubric and running the code to verify it mattered far more than accepting suggestions as-is.

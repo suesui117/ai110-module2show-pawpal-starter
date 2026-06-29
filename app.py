@@ -49,9 +49,12 @@ if owner.pets:
         due_time = st.text_input("Due time (HH:MM)", value="08:00")
         duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
         priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+        frequency = st.selectbox("Repeats", ["none", "daily", "weekly"])
         if st.form_submit_button("Add task") and title.strip():
             pet = owner.pets[pet_names.index(chosen)]
-            pet.add_task(Task(title.strip(), due_time, int(duration), priority))
+            pet.add_task(
+                Task(title.strip(), due_time, int(duration), priority, frequency=frequency)
+            )
             st.success(f"Added '{title.strip()}' for {chosen}!")
 
     # --- Current pets & tasks ----------------------------------------------
@@ -83,10 +86,37 @@ if owner.pets:
     )
     if st.button("Generate schedule"):
         scheduler = Scheduler(owner.pets, time_budget_minutes=int(budget))
+
+        # Surface scheduling conflicts before showing the plan.
+        conflicts = scheduler.detect_conflicts()
+        if conflicts:
+            for warning in conflicts:
+                st.warning(warning)
+        else:
+            st.success("No scheduling conflicts detected.")
+
         plan = scheduler.build_plan()
         if plan.to_table():
             st.markdown(f"**{plan.total_minutes} min scheduled** of {int(budget)} min budget")
+
+            st.markdown("**Today's plan** (priority-fit within your budget):")
             st.table(plan.to_table())
-            st.text(plan.explain())
+
+            st.markdown("**All tasks sorted by time:**")
+            st.table(
+                [
+                    {
+                        "due_time": t.due_time,
+                        "task": t.title,
+                        "pet": t.pet.name if t.pet else "?",
+                        "priority": t.priority,
+                        "completed": t.completed,
+                    }
+                    for t in scheduler.sort_by_time()
+                ]
+            )
+
+            with st.expander("Why this plan?"):
+                st.text(plan.explain())
         else:
-            st.warning("No tasks to schedule. Add some tasks first.")
+            st.info("No tasks to schedule. Add some tasks first.")
