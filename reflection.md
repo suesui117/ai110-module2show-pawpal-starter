@@ -8,7 +8,7 @@
 
 1. View today's tasks. The user can view all pet care tasks scheduled for the current day.
 2. Manage pets (CRUD). The user can create, view, edit, and delete pets. Each pet stores basic information such as name, species, breed, and age.
-3. Manage pet care tasks. The user can create, edit, and delete care tasks (such as feeding, walking, medication, and grooming) and assign them to a specific pet.
+3. Manage tasks (CRUD). The user can create, edit, and delete care tasks (such as feeding, walking, medication, and grooming) and assign them to a specific pet.
 
 - What classes did you include, and what responsibilities did you assign to each?
 
